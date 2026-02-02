@@ -7,7 +7,7 @@ import time
 import select
 import os
 from dataclasses import dataclass
-from typing import Optional, List, Callable
+from typing import Optional, List, Callable, TextIO
 
 
 @dataclass
@@ -63,7 +63,8 @@ class ClaudeCLI:
         self,
         prompt: str,
         on_output: Optional[Callable[[str], None]] = None,
-        working_dir: Optional[str] = None
+        working_dir: Optional[str] = None,
+        log_file: Optional[TextIO] = None
     ) -> ExecutionResult:
         """
         Execute Claude Code CLI with streaming output.
@@ -72,6 +73,7 @@ class ClaudeCLI:
             prompt: The prompt to send to Claude
             on_output: Optional callback for real-time output (receives text chunks)
             working_dir: Working directory for the command
+            log_file: Optional file handle to write raw stream output
 
         Returns:
             ExecutionResult with success status, output, timing, etc.
@@ -94,7 +96,7 @@ class ClaudeCLI:
 
             # Monitor stream with timeout detection
             output, timed_out, timeout_reason = self._monitor_stream(
-                process, on_output
+                process, on_output, log_file
             )
 
             # Get exit code
@@ -161,7 +163,8 @@ class ClaudeCLI:
     def _monitor_stream(
         self,
         process: subprocess.Popen,
-        on_output: Optional[Callable[[str], None]]
+        on_output: Optional[Callable[[str], None]],
+        log_file: Optional[TextIO] = None
     ) -> tuple:
         """
         Monitor streaming output with timeout detection.
@@ -204,6 +207,11 @@ class ClaudeCLI:
                 line = line.decode("utf-8", errors="replace")
                 self.last_output_time = time.time()
                 output_lines.append(line)
+
+                # Write raw output to log file if provided
+                if log_file:
+                    log_file.write(line)
+                    log_file.flush()
 
                 # Parse and display stream content
                 self._handle_stream_line(line, on_output)

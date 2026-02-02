@@ -215,8 +215,14 @@ def convert_spec_to_prd(
         project_name=project_name
     )
 
+    # Create log file for Claude's stream output
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    stream_log_path = prd_dir.logs_dir / f"spec_to_prd_{timestamp}_stream.log"
+    stream_log_path.parent.mkdir(parents=True, exist_ok=True)
+
     logger.info(f"Calling Claude ({model}) to analyze project and generate PRD...")
     logger.info("Claude will explore project structure using its tools...")
+    logger.info(f"Stream output saved to: {stream_log_path}")
     logger.log_separator()
 
     # Execute Claude with tools enabled for project exploration
@@ -226,7 +232,20 @@ def convert_spec_to_prd(
         model=model
     )
 
-    result = cli.execute(prompt)
+    # Open log file for stream output
+    with open(stream_log_path, "w", encoding="utf-8") as stream_log:
+        stream_log.write(f"# spec-to-prd Stream Output\n")
+        stream_log.write(f"# Started: {datetime.now().isoformat()}\n")
+        stream_log.write(f"# Spec: {spec_path}\n")
+        stream_log.write(f"# Model: {model}\n")
+        stream_log.write("=" * 60 + "\n\n")
+
+        result = cli.execute(prompt, log_file=stream_log)
+
+        stream_log.write("\n" + "=" * 60 + "\n")
+        stream_log.write(f"# Ended: {datetime.now().isoformat()}\n")
+        stream_log.write(f"# Duration: {result.duration_seconds:.1f}s\n")
+        stream_log.write(f"# Success: {result.success}\n")
 
     logger.log_separator()
 
@@ -242,9 +261,17 @@ def convert_spec_to_prd(
         prd_data = extract_json_from_output(result.output)
     except ValueError as e:
         logger.error(f"Failed to parse Claude output: {e}")
-        logger.error("Raw output (last 2000 chars):")
-        logger.error(result.output[-2000:])
+        logger.error(f"See full output in: {stream_log_path}")
         raise
+
+    # Validate required fields
+    required_fields = ["project", "userStories"]
+    missing_fields = [f for f in required_fields if f not in prd_data]
+    if missing_fields:
+        logger.error(f"Missing required fields in PRD: {missing_fields}")
+        logger.error(f"Parsed JSON keys: {list(prd_data.keys())}")
+        logger.error(f"See full output in: {stream_log_path}")
+        raise ValueError(f"Missing required fields: {missing_fields}")
 
     # Add source spec info
     prd_data["source_spec"] = str(spec_path)
@@ -252,7 +279,12 @@ def convert_spec_to_prd(
     prd_data["updated_at"] = datetime.now().isoformat()
 
     # Create PRD object
-    prd = PRD.from_dict(prd_data)
+    try:
+        prd = PRD.from_dict(prd_data)
+    except Exception as e:
+        logger.error(f"Failed to create PRD object: {e}")
+        logger.error(f"PRD data: {json.dumps(prd_data, indent=2, default=str)[:1000]}")
+        raise
 
     logger.success(f"PRD created with {len(prd.userStories)} user stories")
 
