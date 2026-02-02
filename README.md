@@ -22,13 +22,32 @@ Python 实现的 Ralph 自主开发循环系统。将 spec 文档转换为 PRD�
 
 ### spec-to-prd
 
-将 spec markdown 文件转换为 PRD JSON 格式。
+将 spec markdown 文件转换为 PRD JSON 格式。**会自动分析现有项目结构**，生成与现有代码库兼容的 PRD。
 
 ```bash
 spec-to-prd <SPEC_FILE> [OPTIONS]
 ```
 
-> **注意**: 如果 `.prd` 目录不存在，会自动初始化创建。
+> **注意**:
+> - 如果 `.prd` 目录不存在，会自动初始化创建
+> - 会自动分析当前目录的项目结构、配置文件、Git 信息
+
+#### 项目上下文分析
+
+`spec-to-prd` 会自动收集以下信息并提供给 Claude：
+
+| 分析内容 | 说明 |
+|----------|------|
+| 目录结构 | 项目文件树（最深 4 层，排除 node_modules 等） |
+| 配置文件 | package.json, pyproject.toml, tsconfig.json 等 |
+| README | 项目文档 |
+| Git 信息 | 当前分支、提交数量 |
+
+这样生成的 PRD 会：
+- 遵循现有代码风格和约定
+- 引用需要修改的现有文件
+- 考虑项目的技术栈（Node/Python/Rust 等）
+- 增量开发而非重写
 
 #### 参数
 
@@ -44,10 +63,10 @@ spec-to-prd <SPEC_FILE> [OPTIONS]
 #### 使用示例
 
 ```bash
-# 转换 spec 文件为 PRD（自动初始化 .prd 目录）
+# 转换 spec 文件为 PRD（自动分析项目结构）
 spec-to-prd my-feature.md
 
-# 使用 opus 模型
+# 使用 opus 模型（更强的上下文理解）
 spec-to-prd my-feature.md -m opus
 
 # 使用 haiku 模型（更快更便宜）
