@@ -228,18 +228,22 @@ class ClaudeCLI:
         self,
         line: str,
         on_output: Optional[Callable[[str], None]]
-    ) -> None:
+    ) -> Optional[str]:
         """
         Handle a single line of stream-json output.
 
         Extracts text content and calls the output callback.
+
+        Returns:
+            Extracted text content, or None if no text in this line
         """
         line = line.strip()
         if not line:
-            return
+            return None
 
         try:
             data = json.loads(line)
+            extracted_text = None
 
             # Handle different event types
             if data.get("type") == "stream_event":
@@ -254,6 +258,7 @@ class ClaudeCLI:
                             print(text, end="", flush=True)
                             if on_output:
                                 on_output(text)
+                            extracted_text = text
 
                 elif event_type == "content_block_start":
                     content_block = event.get("content_block", {})
@@ -263,21 +268,26 @@ class ClaudeCLI:
                         print(marker, end="", flush=True)
                         if on_output:
                             on_output(marker)
+                        extracted_text = marker
 
                 elif event_type == "content_block_stop":
                     print("\n", end="", flush=True)
                     if on_output:
                         on_output("\n")
+                    extracted_text = "\n"
 
             elif data.get("type") == "result":
                 # Final result message - extract any useful info
                 pass
+
+            return extracted_text
 
         except json.JSONDecodeError:
             # Not JSON, might be raw output
             print(line, flush=True)
             if on_output:
                 on_output(line + "\n")
+            return line + "\n"
 
     def _extract_session_id(self, output: str) -> str:
         """Extract session ID from output if present."""

@@ -168,7 +168,8 @@ class ImplementationLoop:
         )
         self.analyzer = ResponseAnalyzer()
         self.circuit_breaker = SimpleCircuitBreaker(no_progress_threshold)
-        self.rate_limiter = RateLimiter(config.max_calls_per_hour)
+        rate_limit_state_file = project.prd_dir / "rate_limit.json"
+        self.rate_limiter = RateLimiter(config.max_calls_per_hour, rate_limit_state_file)
 
         # State
         self.state = project.load_state()

@@ -25,7 +25,10 @@ class Config:
             ]
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        # Always true in impl-prd (autonomous mode), this field is ignored
+        d["dangerously_skip_permissions"] = True
+        return d
 
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent)
