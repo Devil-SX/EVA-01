@@ -89,11 +89,8 @@ Generate a valid JSON object with this exact structure:
 - Reference the actual file paths you discovered during exploration
 
 ## IMPORTANT: Save PRD to File
-After your analysis, use the Write tool to save the PRD JSON to this directory:
-  {prds_dir}
-
-Name the file based on the project/feature name in kebab-case with .json extension.
-For example: my-feature.json, user-auth.json, api-refactor.json
+After your analysis, use the Write tool to save the PRD JSON to this exact file path:
+  {prd_output_path}
 
 The JSON must be valid and parseable. Do NOT wrap it in markdown code blocks.
 '''
@@ -213,14 +210,16 @@ def convert_spec_to_prd(
     with open(spec_path, "r", encoding="utf-8") as f:
         spec_content = f.read()
 
-    # Get list of existing PRD files before execution
-    existing_prds = set(prd_dir.prds_dir.glob("*.json"))
+    # Generate timestamped output filename
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    prd_filename = f"prd_{timestamp}.json"
+    prd_output_path = prd_dir.prds_dir / prd_filename
 
     # Build prompt - Claude will explore the project and write PRD to file
     prompt = CONVERSION_PROMPT.format(
         spec_content=spec_content,
         project_name=project_name,
-        prds_dir=prd_dir.prds_dir
+        prd_output_path=prd_output_path
     )
 
     # Create log file for Claude's stream output
@@ -230,7 +229,7 @@ def convert_spec_to_prd(
 
     logger.info(f"Calling Claude ({model}) to analyze project and generate PRD...")
     logger.info("Claude will explore project structure using its tools...")
-    logger.info(f"PRD will be saved to: {prd_dir.prds_dir}")
+    logger.info(f"PRD will be saved to: {prd_output_path}")
     logger.info(f"Stream output saved to: {stream_log_path}")
     logger.log_separator()
 
@@ -265,17 +264,13 @@ def convert_spec_to_prd(
 
     logger.info(f"Claude execution completed in {result.duration_seconds:.1f}s")
 
-    # Find newly created PRD file
-    current_prds = set(prd_dir.prds_dir.glob("*.json"))
-    new_prds = current_prds - existing_prds
-
-    if not new_prds:
-        logger.error("Claude did not create a PRD file")
+    # Check if PRD file was created
+    if not prd_output_path.exists():
+        logger.error(f"Claude did not create PRD file at: {prd_output_path}")
         logger.error(f"See full output in: {stream_log_path}")
-        raise RuntimeError("No PRD file was created by Claude")
+        raise RuntimeError(f"PRD file was not created: {prd_output_path}")
 
-    # Use the newest file if multiple were created
-    prd_path = max(new_prds, key=lambda p: p.stat().st_mtime)
+    prd_path = prd_output_path
     logger.info(f"PRD file created: {prd_path.name}")
 
     # Load and validate PRD
