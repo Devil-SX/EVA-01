@@ -32,7 +32,6 @@ from config import PrdProject, find_project_root, Config
 from prd_schema import PRD, LoopState
 from claude_cli import ClaudeCLI, check_claude_installed
 from session_logger import SessionLogger
-from response_analyzer import ResponseAnalyzer, detect_story_completion
 from circuit_breaker import SimpleCircuitBreaker
 from rate_limiter import RateLimiter
 
@@ -53,27 +52,23 @@ IMPLEMENTATION_PROMPT = '''You are an autonomous coding agent implementing a PRD
 1. Implement this single user story completely
 2. Run quality checks (typecheck, lint, test as applicable)
 3. If checks pass, commit ALL changes with message: `feat: {story_id} - {story_title}`
-4. Report your status using the format below
+4. **IMPORTANT**: After completing this story, update the PRD file to mark it as passed
 
-## Status Report Format:
-When done with this story, output:
+## PRD File Location:
+{prd_path}
 
----RALPH_STATUS---
-STATUS: COMPLETE|IN_PROGRESS|FAILED
-STORY_ID: {story_id}
-STORY_PASSED: true|false
-FILES_MODIFIED: [list of files]
-EXIT_SIGNAL: true|false
----END_RALPH_STATUS---
+## How to Mark Story Complete:
+When you have successfully implemented and tested this story, use the Edit tool to update the PRD file:
+- Find the story with id "{story_id}"
+- Change `"passes": false` to `"passes": true`
+- Add `"completed_at": "<current ISO timestamp>"`
 
 ## Important:
 - Focus on THIS story only
 - Make minimal, focused changes
 - Follow existing code patterns
 - Keep commits atomic
-
-If ALL stories in the PRD are complete, also output:
-<promise>COMPLETE</promise>
+- Always update the PRD file when the story is complete
 '''
 
 
@@ -166,7 +161,6 @@ class ImplementationLoop:
             model=model,
             dangerously_skip_permissions=True,  # Autonomous mode
         )
-        self.analyzer = ResponseAnalyzer()
         self.circuit_breaker = SimpleCircuitBreaker(no_progress_threshold)
         rate_limit_state_file = project.prd_dir / "rate_limit.json"
         self.rate_limiter = RateLimiter(config.max_calls_per_hour, rate_limit_state_file)
@@ -292,35 +286,19 @@ class ImplementationLoop:
                 )
                 continue
 
-            # Analyze response
-            analysis = self.analyzer.analyze(result.output)
-            story_passed = False
+            # Reload PRD to check if Claude updated the story status
+            old_passes = story.passes
+            self.prd = PRD.load(self.prd_path)
 
-            # Check for project completion
-            if analysis.is_complete:
-                self.logger.success("Project complete signal detected!")
-                self.exit_reason = "complete"
-                self.prd.mark_story_complete(story.id)
-                self.prd.save(self.prd_path)
-                story_passed = True
-                self.logger.end_loop(
-                    success=True,
-                    story_passed=True,
-                    api_duration=api_duration
-                )
-                break
+            # Find the story and check if it passed
+            updated_story = next((s for s in self.prd.userStories if s.id == story.id), None)
+            story_passed = updated_story and updated_story.passes and not old_passes
 
-            # Check if story passed
-            if analysis.story_passed or detect_story_completion(result.output, story.id):
+            if story_passed:
                 self.logger.success(f"Story {story.id} completed!")
-                self.prd.mark_story_complete(story.id)
                 self.circuit_breaker.record_success()
-                story_passed = True
-
-                # Save PRD
-                self.prd.save(self.prd_path)
             else:
-                # No story completion detected - record as failure for circuit breaker
+                # Story not marked as passed - record as no progress
                 self.circuit_breaker.record_failure("no_progress")
 
             # End loop
@@ -368,6 +346,7 @@ class ImplementationLoop:
             story_title=story.title,
             story_description=story.description,
             acceptance_criteria=criteria_list,
+            prd_path=self.prd_path,
         )
 
     def _wait_with_countdown(self, seconds: int) -> None:
