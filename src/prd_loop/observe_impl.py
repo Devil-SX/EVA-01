@@ -24,101 +24,161 @@ from config import find_project_root
 OBSERVE_PROMPT = '''You are a log analyzer for impl-prd execution sessions.
 
 ## Task
-Analyze the implementation session logs and:
-1. Read all log files in the session directory
-2. Identify errors, warnings, and failures
-3. Summarize what went well and what went wrong
-4. Generate a markdown report
-5. Optionally create a GitHub Issue if significant issues were found
+Analyze the implementation session logs and generate a structured report with GitHub issues.
 
 ## Session Directory
 {session_dir}
 
-## Create GitHub Issue
+## Create GitHub Issues
 {create_issue}
 
-## Steps
+## Analysis Steps
 
-### Step 1: Read summary.json
-Read the summary.json file to understand:
-- Overall session results (exit reason, duration, loop counts)
-- Stories completed vs total
-- Success/failure rates
+### Step 1: Read all relevant files
+1. Read `summary.json` for overall session statistics
+2. Read `session.log` for main execution flow
+3. Read `prd_snapshot.json` for task description
+4. Read `loop_*.log` files for detailed Claude interactions
 
-### Step 2: Read session.log
-Read the session.log file for the main execution flow and timeline.
-
-### Step 3: Read loop log files
-Read the loop_*.log files to understand:
-- What Claude was asked to do in each loop
-- What actions Claude took
-- Any errors or failures that occurred
-- Why stories passed or failed
-
-### Step 4: Analyze patterns
-Look for patterns such as:
-- Repeated failures on the same story
-- Common error types
-- Timeout issues
-- Circuit breaker triggers
-- Quality check failures (lint, typecheck, test)
-
-### Step 5: Write report
+### Step 2: Write the observation report
 Write a markdown report to: {session_dir}/observation_report.md
 
-Use this format:
+**IMPORTANT**: The report MUST follow this EXACT structure:
+
 ```markdown
-# Implementation Session Report
+# Implementation Session Observation Report
 
-## Summary
-- **Session ID**: ...
-- **Duration**: ...
-- **Stories Progress**: X/Y completed (Z this session)
-- **Loop Results**: A successful, B failed
-- **Exit Reason**: ...
+## 1. Summary
 
-## Session Timeline
-Brief overview of what happened during the session.
+| Item | Value |
+|------|-------|
+| Session ID | `YYYYMMDD_HHMMSS` |
+| Duration | Xh Ym Zs |
+| Stories Progress | X/Y completed (Z this session) |
+| Loop Results | A successful, B failed |
+| Exit Reason | complete/circuit_breaker/user_interrupt/etc |
+| GitHub Issues | #N, #M (or "None" if no issues created) |
 
-## Issues Found
+## 2. Task Description
 
-### Issue 1: [Short Title]
+Based on the PRD (from prd_snapshot.json):
+- **Project**: [project name]
+- **Description**: [project description]
+- **User Stories**:
+  - US-001: [title] - [status: passed/pending]
+  - US-002: [title] - [status: passed/pending]
+  - ...
+
+## 3. Session Analysis
+
+### 3.1 Timeline Overview
+Brief chronological overview of what happened during the session.
+
+### 3.2 Loop-by-Loop Analysis
+
+| Loop | Story | Duration | Result | Notes |
+|------|-------|----------|--------|-------|
+| #1 | US-001 | 5m 30s | Passed | First attempt success |
+| #2 | US-002 | 8m 15s | Failed | Type check errors |
+| ... | ... | ... | ... | ... |
+
+### 3.3 Performance Analysis
+- **Longest Loop**: Loop #X (Ym Zs) - [reason why it took long]
+- **Fastest Loop**: Loop #Y (Zm Ws)
+- **Average Loop Duration**: Xm Ys
+- **Total API Time**: Xh Ym
+
+## 4. Task-Specific Issues
+
+Issues related to the specific implementation task (code problems, test failures, etc.)
+
+### Issue 4.1: [Short Title]
 - **Loop(s)**: #N, #M
-- **Story**: US-XXX (if applicable)
-- **Problem**: Description of what went wrong
-- **Root Cause**: Analysis of why it happened
-- **Suggestion**: How to fix or avoid this issue
+- **Story**: US-XXX
+- **Problem**: [Description of what went wrong]
+- **Root Cause**: [Analysis of why it happened]
+- **Suggestion**: [How to fix or improve]
 
-### Issue 2: ...
+### Issue 4.2: ...
 
-## What Went Well
-- List of things that worked correctly
-- Successful patterns observed
+(If no task-specific issues: "No task-specific issues found.")
 
-## Recommendations
-Actionable suggestions for improving future runs or fixing issues.
+## 5. Workflow Issues
 
-## Technical Details
-Any relevant technical information (error messages, stack traces, etc.)
+Issues related to the prd-loop workflow itself (not the specific task)
+
+### Issue 5.1: [Short Title]
+- **Type**: timeout/circuit_breaker/rate_limit/tool_error/etc
+- **Loop(s)**: #N
+- **Problem**: [Description]
+- **Impact**: [How it affected the session]
+- **Suggestion**: [How to improve the workflow]
+
+Examples of workflow issues:
+- Timeout without proper recovery
+- Circuit breaker triggered incorrectly
+- Rate limiting issues
+- Tool permission problems
+- PRD parsing errors
+- State management bugs
+
+(If no workflow issues: "No workflow issues found.")
+
+## 6. GitHub Issues Created
+
+List of GitHub issues created for this session:
+- Issue #N: [Title] - [Category: task/workflow]
+- Issue #M: [Title] - [Category: task/workflow]
+
+(If no issues created: "No GitHub issues created - session completed successfully.")
 ```
 
-### Step 6: Create GitHub Issue (if applicable)
-If create_issue is "yes" AND significant issues were found (not just "all stories completed successfully"):
-- Use `gh issue create -R Devil-SX/prd-loop` to create an issue in the prd-loop repository
-- Title: "impl-prd Session Report: [brief summary]"
-- Label: "impl-prd-observation" (create with `gh label create -R Devil-SX/prd-loop` if it doesn't exist)
-- Include the key findings from the report
+### Step 3: Create GitHub Issues (if applicable)
 
-Do NOT create an issue if:
+If create_issue is "yes", create SEPARATE issues for each significant problem found:
+
+**For Task-Specific Issues** (Section 4):
+```bash
+gh issue create -R Devil-SX/prd-loop \
+  --title "impl-prd task issue: [brief title]" \
+  --label "impl-prd-task" \
+  --body "..."
+```
+
+**For Workflow Issues** (Section 5):
+```bash
+gh issue create -R Devil-SX/prd-loop \
+  --title "impl-prd workflow issue: [brief title]" \
+  --label "impl-prd-workflow" \
+  --body "..."
+```
+
+Each issue body should include:
+- Session ID
+- Related loop numbers
+- Problem description
+- Root cause analysis
+- Suggested fix
+
+**Create labels if they don't exist:**
+```bash
+gh label create -R Devil-SX/prd-loop "impl-prd-task" --color "d73a4a" --description "Task-specific issues from impl-prd sessions" 2>/dev/null || true
+gh label create -R Devil-SX/prd-loop "impl-prd-workflow" --color "0075ca" --description "Workflow issues from impl-prd sessions" 2>/dev/null || true
+```
+
+**Do NOT create issues if:**
 - The session completed successfully with no problems
 - Only minor warnings were encountered
 - create_issue is "no"
 
+After creating issues, update Section 6 of the report with the issue numbers.
+
 ## Important Notes
 - Be thorough but concise in your analysis
 - Focus on actionable insights
-- If a loop file is very long, focus on the error sections and key decision points
-- Look for patterns across multiple loops, not just individual failures
+- If a loop file is very long, focus on error sections and key decision points
+- Clearly distinguish between task issues (code/test problems) and workflow issues (prd-loop problems)
+- Each issue should be atomic and actionable
 '''
 
 
@@ -171,6 +231,21 @@ def find_latest_session(logs_dir: Path) -> Path | None:
     return sessions[0] if sessions else None
 
 
+def cleanup_previous_observation(session_dir: Path) -> None:
+    """Remove previous observation files if they exist."""
+    files_to_remove = [
+        session_dir / "observation.log",
+        session_dir / "observation_report.md",
+        # Also clean up old naming convention
+        session_dir / "observe.log",
+    ]
+
+    for file_path in files_to_remove:
+        if file_path.exists():
+            file_path.unlink()
+            print(f"Removed previous: {file_path.name}")
+
+
 def run_observe(session_dir: Path, create_issue: bool = True, model: str = "haiku", timeout_minutes: int = 10) -> bool:
     """
     Run observation analysis on a session directory.
@@ -187,6 +262,9 @@ def run_observe(session_dir: Path, create_issue: bool = True, model: str = "haik
     print(f"\n{'=' * 60}")
     print(f"observe-impl: Analyzing session {session_dir.name}")
     print(f"{'=' * 60}")
+
+    # Clean up previous observation files
+    cleanup_previous_observation(session_dir)
 
     # Check for required files
     summary_file = session_dir / "summary.json"
@@ -220,8 +298,8 @@ def run_observe(session_dir: Path, create_issue: bool = True, model: str = "haik
     print(f"\nAnalyzing with Claude ({model})...\n")
 
     # Open log file for stream output
-    observe_log_path = session_dir / "observe.log"
-    with open(observe_log_path, "w", encoding="utf-8") as log_file:
+    observation_log_path = session_dir / "observation.log"
+    with open(observation_log_path, "w", encoding="utf-8") as log_file:
         result = cli.execute(prompt, log_file=log_file)
 
     if result.timeout:
@@ -238,6 +316,7 @@ def run_observe(session_dir: Path, create_issue: bool = True, model: str = "haik
         print(f"\n{'=' * 60}")
         print(f"Observation complete!")
         print(f"Report saved to: {report_file}")
+        print(f"Log saved to: {observation_log_path}")
         print(f"{'=' * 60}")
     else:
         print(f"\nWarning: Report file not created at {report_file}")
