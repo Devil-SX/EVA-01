@@ -237,7 +237,7 @@ Analyze loop logs to find patterns that can be documented as solutions:
 For EACH issue, apply Privacy Sanitization Guidelines and save to:
 `{session_dir}/issues/issue_NNN_ROUTE.md`
 - NNN: Three-digit sequence (001, 002, ...)
-- ROUTE: `prd-loop`, `framework-{name}`, or `project`
+- ROUTE: `prd-loop`, `framework-{{name}}`, or `project`
 
 **File format:**
 ```markdown
