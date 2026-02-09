@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="./eva.png" width="400" alt="EVA-01">
+  <img src="./eva.jpg" width="100%" alt="EVA-01">
 </p>
 
 A prototype testing platform for automating life. Converts requirement documents (specs) into structured PRDs, then lets Claude Code autonomously implement all user stories in a loop. The goal is to explore efficient human-AI collaboration in the age of rapidly advancing AI.

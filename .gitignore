@@ -1,6 +1,5 @@
 # Reference repositories
-ralph/
-ralph-claude-code/
+reference/
 
 # Python
 __pycache__/

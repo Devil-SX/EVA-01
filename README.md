@@ -12,7 +12,7 @@
 </p>
 
 <p align="center">
-  <img src="./eva.png" width="400" alt="EVA-01">
+  <img src="./eva.jpg" width="100%" alt="EVA-01">
 </p>
 
 自动化生活的测试平台原型机。将需求文档（spec）转换为结构化的 PRD，再由 Claude Code 自主循环实现所有 user stories。目标是在 AI 快速发展的时代，探索人类与 AI 高效协作的方式。

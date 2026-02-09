@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Added
+- `CLAUDE.md` with commit workflow instructions (update cloc badges on commit)
+
+### Changed
+- Compress logo: `eva.png` (5.8MB) -> `eva.jpg` (177KB), set to full-width display
+- Move `ralph/` and `ralph-claude-code/` into `reference/` directory
+- Simplify `.gitignore` to ignore `reference/` instead of individual dirs
+
 ## [0.1.0] - 2026-02-09
 
 ### Added
