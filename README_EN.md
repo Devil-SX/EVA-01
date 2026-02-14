@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
   <img src="https://img.shields.io/badge/Python-1890_lines-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Shell-248_lines-4EAA25?logo=gnubash&logoColor=white" alt="Shell">
-  <img src="https://img.shields.io/badge/Markdown-24_lines-000000?logo=markdown&logoColor=white" alt="Markdown">
+  <img src="https://img.shields.io/badge/Markdown-55_lines-000000?logo=markdown&logoColor=white" alt="Markdown">
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
   <img src="./eva.jpg" width="100%" alt="EVA-01">
 </p>
 
-A prototype testing platform for automating life. Converts requirement documents (specs) into structured PRDs, then lets Claude Code autonomously implement all user stories in a loop. The goal is to explore efficient human-AI collaboration in the age of rapidly advancing AI.
+A prototype testing platform for automating life.The goal is to explore efficient human-AI collaboration in the age of rapidly advancing AI.
 
 ---
 
@@ -63,29 +63,59 @@ EVA-01 is an **experimental platform**, not a closed tool. The methodology refin
 
 ---
 
-## Quick Start
+## Tool Overview
 
-```bash
-# Install
-./install.sh
+EVA-01 provides two types of tools:
 
-# Go to your project
-cd your-project
+| Type | How it runs | Best for | Installation |
+|------|-------------|----------|-------------|
+| **Headless CLI** | Runs directly in terminal, no human intervention | Batch execution, CI/CD, unattended runs | `./install.sh` |
+| **Claude Code Plugin** | Used within Claude Code interactive sessions | Spec discussion, requirement refinement, human-AI collaboration | `claude plugin install eva-01` |
 
-# Write a spec, convert to PRD, then auto-implement
-spec-to-prd my-feature.md
-impl-prd
-```
+### Headless CLI Tools
 
-Uninstall: `./uninstall.sh`
-
-After installation, the following commands are available in `~/.local/bin/`:
+Installed to `~/.local/bin/` via `./install.sh`, callable from any project:
 
 | Command | Description |
 |---------|-------------|
 | `spec-to-prd` | Convert spec to PRD JSON with automatic project analysis |
 | `impl-prd` | Autonomous loop to implement PRD user stories |
 | `observe-impl` | Analyze execution logs, generate reports, push GitHub Issues |
+
+### Claude Code Plugin (Interactive)
+
+Installed via the Claude Code plugin system, triggered with `/` in sessions:
+
+| Command | Description |
+|---------|-------------|
+| `/discuss_spec` | Refine spec and plan through discriminative questioning to uncover true user intent |
+
+The plugin's core value: **resolve all ambiguity at the spec stage so downstream headless execution succeeds in one shot, avoiding repeated back-and-forth.**
+
+---
+
+## Quick Start
+
+```bash
+# Install Headless CLI
+./install.sh
+
+# Install Claude Code Plugin
+claude plugin marketplace add /path/to/my-ralph/.claude-plugin/marketplace.json
+claude plugin install eva-01
+
+# Go to your project
+cd your-project
+
+# First, refine requirements with the interactive plugin
+# (in a Claude Code session) /discuss_spec my-feature.md
+
+# Then execute headlessly
+spec-to-prd my-feature.md
+impl-prd
+```
+
+Uninstall: CLI via `./uninstall.sh`, Plugin via `claude plugin uninstall eva-01`
 
 ---
 

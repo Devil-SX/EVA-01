@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
   <img src="https://img.shields.io/badge/Python-1890_lines-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Shell-248_lines-4EAA25?logo=gnubash&logoColor=white" alt="Shell">
-  <img src="https://img.shields.io/badge/Markdown-24_lines-000000?logo=markdown&logoColor=white" alt="Markdown">
+  <img src="https://img.shields.io/badge/Markdown-55_lines-000000?logo=markdown&logoColor=white" alt="Markdown">
 </p>
 
 <p align="center">
@@ -15,7 +15,7 @@
   <img src="./eva.jpg" width="100%" alt="EVA-01">
 </p>
 
-自动化生活的测试平台原型机。将需求文档（spec）转换为结构化的 PRD，再由 Claude Code 自主循环实现所有 user stories。目标是在 AI 快速发展的时代，探索人类与 AI 高效协作的方式。
+自动化生活的测试平台原型机。目标是在 AI 快速发展的时代，探索人类与 AI 高效协作的方式。
 
 ---
 
@@ -63,29 +63,59 @@ EVA-01 是一个**实验平台**，而非封闭工具。这里沉淀的方法论
 
 ---
 
-## 快速开始
+## 工具总览
 
-```bash
-# 安装
-./install.sh
+EVA-01 提供两类工具：
 
-# 进入你的项目
-cd your-project
+| 类型 | 运行方式 | 适用场景 | 安装方式 |
+|------|----------|----------|----------|
+| **Headless CLI** | 终端直接运行，无需人工介入 | 批量执行、CI/CD、无人值守 | `./install.sh` |
+| **Claude Code Plugin** | Claude Code 交互式会话中使用 | 需求讨论、spec 打磨、人机协作 | `claude plugin install eva-01` |
 
-# 写一个需求文档，转换为 PRD，然后自主实现
-spec-to-prd my-feature.md
-impl-prd
-```
+### Headless CLI 工具
 
-卸载：`./uninstall.sh`
-
-安装后在 `~/.local/bin/` 创建以下命令：
+通过 `./install.sh` 安装到 `~/.local/bin/`，可在任意项目中直接调用：
 
 | 命令 | 说明 |
 |------|------|
 | `spec-to-prd` | 将 spec 转换为 PRD JSON，自动分析项目结构 |
 | `impl-prd` | 自主循环实现 PRD 中的 user stories |
 | `observe-impl` | 分析执行日志，生成报告并推送 GitHub Issue |
+
+### Claude Code Plugin（交互式）
+
+通过 Claude Code plugin 系统安装，在会话中用 `/` 触发：
+
+| 命令 | 说明 |
+|------|------|
+| `/discuss_spec` | 通过辨析式提问挖掘用户真实意图，完善 spec 和 plan |
+
+Plugin 的核心价值：**在 spec 阶段把所有模糊点问清楚，让后续 headless 执行一次到位，避免反复交互。**
+
+---
+
+## 快速开始
+
+```bash
+# 安装 Headless CLI
+./install.sh
+
+# 安装 Claude Code Plugin
+claude plugin marketplace add /path/to/my-ralph/.claude-plugin/marketplace.json
+claude plugin install eva-01
+
+# 进入你的项目
+cd your-project
+
+# 先用交互式 plugin 打磨需求
+# （在 Claude Code 会话中）/discuss_spec my-feature.md
+
+# 再用 headless CLI 批量执行
+spec-to-prd my-feature.md
+impl-prd
+```
+
+卸载：CLI 用 `./uninstall.sh`，Plugin 用 `claude plugin uninstall eva-01`
 
 ---
 

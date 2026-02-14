@@ -9,7 +9,7 @@ Options:
     SPEC_FILE           Path to spec markdown file
     --output FILE       Output PRD JSON file path
     --project NAME      Project name (default: inferred from filename)
-    --model MODEL       Claude model: opus/sonnet/haiku (default: sonnet)
+    --model MODEL       Claude model: opus/sonnet/haiku (default: opus)
     --timeout MIN       Claude timeout in minutes (default: 15)
     -h, --help          Show this help message
 
@@ -58,8 +58,8 @@ def parse_args():
     parser.add_argument(
         "--model", "-m",
         choices=["opus", "sonnet", "haiku"],
-        default="sonnet",
-        help="Claude model to use (default: sonnet)"
+        default="opus",
+        help="Claude model to use (default: opus)"
     )
     parser.add_argument(
         "--timeout",
@@ -126,7 +126,7 @@ def convert_spec_to_prd(
     prd_dir: PrdDir,
     logger: PrdLogger,
     config: Config,
-    model: str = "sonnet"
+    model: str = "opus"
 ) -> tuple[PRD, Path]:
     """
     Convert a spec file to PRD using Claude.

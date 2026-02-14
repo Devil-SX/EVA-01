@@ -9,7 +9,7 @@ Options:
     --prd FILE          Specify PRD file (default: latest in .prd/prds/)
     --max-iterations N  Maximum loop iterations (default: 50)
     --timeout MINUTES   Claude timeout in minutes (default: 15)
-    --model MODEL       Claude model: opus/sonnet/haiku (default: sonnet)
+    --model MODEL       Claude model: opus/sonnet/haiku (default: opus)
     --resume            Resume from last state
     --status            Show current status and exit
     --reset             Reset state and start fresh
@@ -62,8 +62,8 @@ def parse_args():
     parser.add_argument(
         "--model", "-m",
         choices=["opus", "sonnet", "haiku"],
-        default="sonnet",
-        help="Claude model to use (default: sonnet)",
+        default="opus",
+        help="Claude model to use (default: opus)",
     )
     parser.add_argument(
         "--no-progress-threshold",
@@ -113,7 +113,7 @@ class ImplementationLoop:
         max_iterations: int = 50,
         timeout_minutes: int = 15,
         no_progress_threshold: int = 3,
-        model: str = "sonnet",
+        model: str = "opus",
     ):
         self.project = project
         self.prd = prd
@@ -462,12 +462,12 @@ def main():
         print(f"Error: Failed to load PRD: {e}")
         return 1
 
-    # Check for resume
+    # Check for resume — auto-resume if previous run was interrupted
     state = project.load_state()
     if not args.resume and state.loop_count > 0 and state.status in ("running", "paused"):
-        print(f"Warning: Previous run detected (loop #{state.loop_count}, status: {state.status})")
-        print("Use --resume to continue or --reset to start fresh")
-        return 1
+        print(f"Auto-resuming previous run (loop #{state.loop_count}, status: {state.status})")
+        print("Use --reset to start fresh instead")
+        args.resume = True
 
     # Initialize session logger
     logger = SessionLogger(logs_dir=project.logs_dir)

@@ -4,11 +4,16 @@
 
 ### Added
 - `CLAUDE.md` with commit workflow instructions (update cloc badges on commit)
+- Tool overview section in README: classify tools into Headless CLI and Claude Code Plugin
+- `/discuss_spec` redesigned: discriminative questioning, meta-intent analysis, plan expansion
 
 ### Changed
+- Default model for `impl-prd` and `spec-to-prd` changed from `sonnet` to `opus` (observe-impl stays `haiku`)
+- `impl-prd` auto-resumes interrupted runs instead of requiring `--resume` flag
 - Compress logo: `eva.png` (5.8MB) -> `eva.jpg` (177KB), set to full-width display
 - Move `ralph/` and `ralph-claude-code/` into `reference/` directory
 - Simplify `.gitignore` to ignore `reference/` instead of individual dirs
+- Simplify project description in README to focus on core mission
 
 ## [0.1.0] - 2026-02-09
 
