@@ -1,8 +1,8 @@
 <h1 align="center">EVA-01</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-0.1.0-blue" alt="version">
-  <img src="https://img.shields.io/badge/Python-1890_lines-3776AB?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/version-0.2.0-blue" alt="version">
+  <img src="https://img.shields.io/badge/Python-1899_lines-3776AB?logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Shell-248_lines-4EAA25?logo=gnubash&logoColor=white" alt="Shell">
   <img src="https://img.shields.io/badge/Markdown-55_lines-000000?logo=markdown&logoColor=white" alt="Markdown">
 </p>
@@ -256,7 +256,7 @@ your-project/
   "max_iterations": 50,
   "timeout_minutes": 15,
   "output_format": "stream",
-  "allowed_tools": ["Write", "Read", "Edit", "Bash(git *)", "Bash(npm *)", "Bash(pytest)"],
+  "allowed_tools": ["Write", "Read", "Edit", "Glob", "Bash(git *)", "Bash(npm *)", "Bash(npx *)", "Bash(pytest)", "Bash(python -m pytest *)"],
   "session_expiry_hours": 24,
   "max_consecutive_failures": 3,
   "no_progress_threshold": 3
@@ -293,10 +293,11 @@ your-project/
       "id": "US-001",
       "title": "Story title",
       "description": "As a [user], I want [feature] so that [benefit]",
-      "acceptanceCriteria": ["Criterion 1", "Criterion 2", "Typecheck passes"],
+      "acceptanceCriteria": ["Criterion 1", "Criterion 2", "All tests pass"],
       "priority": 1,
       "passes": false,
       "notes": "",
+      "testPlan": "Unit test for ...; integration test for ...",
       "completed_at": null
     }
   ]

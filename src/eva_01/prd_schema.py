@@ -17,6 +17,7 @@ class UserStory:
     priority: int
     passes: bool = False
     notes: str = ""
+    testPlan: str = ""
     completed_at: Optional[str] = None
 
     def to_dict(self) -> dict:
@@ -32,6 +33,7 @@ class UserStory:
             priority=data["priority"],
             passes=data.get("passes", False),
             notes=data.get("notes", ""),
+            testPlan=data.get("testPlan", ""),
             completed_at=data.get("completed_at")
         )
 

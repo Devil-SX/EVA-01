@@ -2,18 +2,22 @@
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-20
+
 ### Added
-- `CLAUDE.md` with commit workflow instructions (update cloc badges on commit)
-- Tool overview section in README: classify tools into Headless CLI and Claude Code Plugin
-- `/discuss_spec` redesigned: discriminative questioning, meta-intent analysis, plan expansion
+- `testPlan` field in `UserStory` schema for per-story test descriptions
+- Test plan section in impl-prd prompt (Step 3: Implement Tests)
+- Full regression test gate in impl-prd prompt (Step 4: must pass before commit)
+- `ARCHITECTURE.md` maintenance steps in impl-prd prompt (Step 5 & 6)
+- `CLAUDE.md` ↔ `ARCHITECTURE.md` cross-reference enforcement in impl-prd
+- Rules 9-10 in spec-to-prd: require `testPlan` and "All tests pass" in acceptance criteria
+- Test framework discovery step in spec-to-prd exploration phase
+- `Glob`, `Bash(npx *)`, `Bash(python -m pytest *)` to default allowed_tools
 
 ### Changed
-- Default model for `impl-prd` and `spec-to-prd` changed from `sonnet` to `opus` (observe-impl stays `haiku`)
-- `impl-prd` auto-resumes interrupted runs instead of requiring `--resume` flag
-- Compress logo: `eva.png` (5.8MB) -> `eva.jpg` (177KB), set to full-width display
-- Move `ralph/` and `ralph-claude-code/` into `reference/` directory
-- Simplify `.gitignore` to ignore `reference/` instead of individual dirs
-- Simplify project description in README to focus on core mission
+- impl-prd prompt rewritten from 4-step to 8-step workflow (read context → implement → test → regress → architecture → CLAUDE.md → commit → update PRD)
+- spec-to-prd prompt: acceptanceCriteria example changed from "Typecheck passes" to "All tests pass"
+- `_build_prompt` in `impl_prd.py` now passes `test_plan` to the prompt template
 
 ## [0.1.0] - 2026-02-09
 

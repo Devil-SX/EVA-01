@@ -309,6 +309,12 @@ class ImplementationLoop:
         # Format acceptance criteria
         criteria_list = "\n".join(f"- [ ] {c}" for c in story.acceptanceCriteria)
 
+        # Get test plan, with fallback for stories without one
+        test_plan = story.testPlan if story.testPlan else (
+            "No specific test plan provided. "
+            "Write tests based on the acceptance criteria above."
+        )
+
         return IMPLEMENTATION_PROMPT.format(
             project_name=self.prd.project,
             project_description=self.prd.description,
@@ -316,6 +322,7 @@ class ImplementationLoop:
             story_title=story.title,
             story_description=story.description,
             acceptance_criteria=criteria_list,
+            test_plan=test_plan,
             prd_path=self.prd_path,
         )
 

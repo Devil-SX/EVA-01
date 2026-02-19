@@ -11,6 +11,7 @@ Before generating the PRD, you MUST:
 2. Read key configuration files (package.json, pyproject.toml, tsconfig.json, Cargo.toml, etc.)
 3. Understand the existing code patterns, conventions, and architecture
 4. Identify files that will need to be modified or extended
+5. Identify the project's existing test framework and test directory structure (e.g., pytest, jest, mocha, cargo test)
 
 ## Input Spec:
 {spec_content}
@@ -27,10 +28,11 @@ Generate a valid JSON object with this exact structure:
       "id": "US-001",
       "title": "[Short story title]",
       "description": "As a [user], I want [feature] so that [benefit]",
-      "acceptanceCriteria": ["Criterion 1", "Criterion 2", "Typecheck passes"],
+      "acceptanceCriteria": ["Criterion 1", "Criterion 2", "All tests pass"],
       "priority": 1,
       "passes": false,
-      "notes": "[Reference specific existing files to modify]"
+      "notes": "[Reference specific existing files to modify]",
+      "testPlan": "[Describe what tests to write: unit tests, integration tests, edge cases, expected inputs/outputs]"
     }}
   ]
 }}
@@ -45,11 +47,14 @@ Generate a valid JSON object with this exact structure:
 6. **Quality criteria** - Always include appropriate quality checks (typecheck, lint, test) in acceptance criteria
 7. **All stories start with passes: false**
 8. **Priority numbers should be sequential (1, 2, 3, ...)**
+9. **Every story MUST have a testPlan** - Describe the concrete tests to write: unit tests for new functions, integration tests for workflows, edge cases, and expected inputs/outputs. The testPlan should be specific enough that a developer can implement the tests from the description alone.
+10. **acceptanceCriteria MUST include "All tests pass"** - Every story must have "All tests pass" (or equivalent) in its acceptance criteria to enforce regression testing before commit.
 
 ## Context-Aware Guidelines:
 - If Node.js project: Consider npm scripts, existing test framework, TypeScript config
 - If Python project: Consider existing test framework, type hints, package structure
 - If existing tests exist: Stories should include updating/adding tests
+- Identify the test runner (pytest, jest, mocha, cargo test, etc.) and note it in the first story's notes so the implementation agent knows how to run tests
 - Reference the actual file paths you discovered during exploration
 
 ## IMPORTANT: Save PRD to File
